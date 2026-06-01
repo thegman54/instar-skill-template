@@ -1,0 +1,18 @@
+name: my_skill
+display_name: My Skill
+description: Short description of what this skill does
+category: Other
+icon: wrench
+color: gray
+version: 1.0.0
+
+# Credentials fetched from Infisical before execute() runs.
+# Leave empty if the tool doesn't need external secrets.
+credentials:
+  - key: MY_API_KEY
+    description: API key for the external service
+
+# Grant metadata keys this tool requires (optional).
+# These are set per-grant in the admin UI and passed to the tool at runtime.
+# grant_metadata:
+#   - project_id
