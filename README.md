@@ -86,6 +86,76 @@ Create `instructions.md` — an operating guide shown to the bot when this skill
 cp -r my_skill/ /path/to/project-instar/tool-executor/src/tools/my_skill/
 ```
 
+## Skill Types
+
+### Simple Skill (default)
+
+Tools run directly inside the tool executor. Good for API calls, database queries, file operations. No Docker needed.
+
+### Database Skill
+
+Add `database: true` to your manifest and include SQL files in a `migrations/` directory. Migrations run automatically on upload and on startup.
+
+```yaml
+database: true
+```
+
+```
+my_skill/
+├── manifest.yaml
+├── __init__.py
+├── tool.py
+└── migrations/
+    ├── 001_create_table.sql
+    └── 002_add_index.sql
+```
+
+### Stack Skill (Docker)
+
+For tools that need isolated infrastructure (VPN tunnels, dedicated services, background processes), include a `stack/` directory with a `docker-compose.yml`. On upload, the `stack/` directory is automatically deployed to the stack manager's tools path.
+
+```
+my_skill/
+├── manifest.yaml          # Skill metadata + credentials
+├── __init__.py            # Tool exports
+├── tool.py                # Tool bridge — HTTP calls to stack API
+├── base.py                # Shared HTTP client to stack
+└── stack/                 # Auto-deployed on upload
+    ├── docker-compose.yml # Defines the isolated stack
+    ├── Dockerfile         # Custom API container
+    ├── requirements.txt   # Python deps for stack API
+    └── src/
+        ├── __init__.py
+        ├── api.py         # REST API the tool bridge calls
+        └── handler.py     # Core logic
+```
+
+**How it works:**
+1. Upload the skill zip via Admin UI
+2. Tool files go to `src/tools/<name>/` (the skill bridge)
+3. `stack/` contents go to `$TOOLS_PATH/<name>/` (the Docker stack)
+4. Stack manager auto-discovers the new stack and starts/stops it on demand
+5. Your tool bridge makes HTTP calls to the stack API (e.g., `http://<name>-api:8086`)
+
+**The skill bridge pattern:**
+
+```python
+import httpx
+
+STACK_API_URL = "http://my-skill-api:8086"
+
+async def call_stack_api(method, endpoint, **kwargs):
+    async with httpx.AsyncClient() as client:
+        resp = await getattr(client, method)(
+            f"{STACK_API_URL}{endpoint}", timeout=30.0, **kwargs
+        )
+        return resp.status_code == 200, resp.json()
+```
+
+Your tools call `call_stack_api()` instead of doing work directly. The stack handles the heavy lifting in its own containers.
+
+**Credentials** for stack skills are fetched from Infisical and passed as environment variables to `docker-compose up`. Declare them in your manifest like any other credential.
+
 ## Naming Convention
 
 Use the `{skill}_{action}` pattern for tool names:
@@ -104,7 +174,8 @@ my_skill/
 ├── tool.py             # Your tool implementation
 ├── instructions.md     # Optional — bot operating guide
 ├── data/               # Optional — editable content (declared in manifest)
-└── migrations/         # Optional — SQL migrations (if database: true)
+├── migrations/         # Optional — SQL migrations (if database: true)
+└── stack/              # Optional — Docker stack (auto-deployed on upload)
 ```
 
 ## Publishing to BotGlaze
