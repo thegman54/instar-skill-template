@@ -178,6 +178,60 @@ my_skill/
 └── stack/              # Optional — Docker stack (auto-deployed on upload)
 ```
 
+## Admin UI
+
+Skills can declare an `admin` block in their manifest to get a "Manage" button on the Admin UI's Tools page.
+
+### Review Type
+
+For skills with database tables that have approvable/rejectable content (e.g., bot-proposed memories, summaries):
+
+```yaml
+admin:
+  type: review
+  label: "Review Items"
+  list_endpoint: /my_items
+  update_endpoint: /my_items/{id}
+  columns:
+    - field: content
+      label: Content
+      truncate: 200
+    - field: source
+      label: Source
+    - field: created_at
+      label: Created
+      format: date
+  statuses:
+    - value: pending
+      label: Pending
+      actions: [approve, reject]
+    - value: approved
+      label: Approved
+      actions: [reject]
+    - value: rejected
+      label: Rejected
+      actions: [approve]
+```
+
+The admin UI renders a generic tabbed list with action buttons — no custom UI code needed. Column formats: `text` (default), `date`, `link`, `tags` (renders arrays as badges).
+
+Your tool-executor endpoints must support:
+- `GET {list_endpoint}?status=pending&limit=50` → `{"entries": [...]}`
+- `PATCH {update_endpoint}` with `{"status": "approved"}` → `{"id": ..., "status": ...}`
+
+### Custom Type
+
+For skills that need a fully custom admin panel:
+
+```yaml
+admin:
+  type: custom
+  label: "Configure"
+  endpoint: /my_skill/admin
+```
+
+The endpoint serves an HTML fragment that gets embedded in the admin UI shell. The admin shell already loads Alpine.js and Tailwind CSS, so your custom HTML can use both without additional imports.
+
 ## Publishing to BotGlaze
 
 1. Push your repo to GitHub

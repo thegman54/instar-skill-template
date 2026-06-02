@@ -16,3 +16,38 @@ credentials:
 # These are set per-grant in the admin UI and passed to the tool at runtime.
 # grant_metadata:
 #   - project_id
+
+# Admin UI — declare how this skill is managed in the admin interface.
+# Adds a "Manage" button to the skill card on the Tools page.
+#
+# type: review — tabbed approve/reject interface (like Recall, Summaries)
+# admin:
+#   type: review
+#   label: "Review Items"
+#   list_endpoint: /my_items
+#   update_endpoint: /my_items/{id}
+#   columns:
+#     - field: content
+#       label: Content
+#       truncate: 200
+#     - field: source
+#       label: Source
+#     - field: created_at
+#       label: Created
+#       format: date            # date | link | tags | text (default)
+#   statuses:
+#     - value: pending
+#       label: Pending
+#       actions: [approve, reject]
+#     - value: approved
+#       label: Approved
+#       actions: [reject, archive]
+#     - value: rejected
+#       label: Rejected
+#       actions: [approve]
+#
+# type: custom — tool serves its own HTML panel
+# admin:
+#   type: custom
+#   label: "Configure"
+#   endpoint: /my_skill/admin    # serves HTML fragment (can use Alpine.js + Tailwind)
