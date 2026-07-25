@@ -25,6 +25,10 @@ class MySkillTool(BaseTool):
         return "Describe what this tool does. Claude reads this to decide when to use it."
 
     @property
+    def short_description(self) -> str:
+        return "Brief 5-10 word summary for CLAUDE.md"
+
+    @property
     def input_schema(self) -> dict:
         return {
             "type": "object",
@@ -61,6 +65,16 @@ class MySkillTool(BaseTool):
         log.info("my_skill_execute", query=query, limit=limit)
 
         # --- Your implementation here ---
+
+        # If you need AI to interpret/transform raw data, use ask_bot().
+        # It's a one-shot call — no session, no tools, no conversation history.
+        #
+        # compiled = await self.ask_bot(
+        #     prompt="Extract product names and prices as JSON",
+        #     context=raw_html,
+        #     system="Return a JSON array. No other text.",
+        #     model="haiku",  # fast and cheap — good for data extraction
+        # )
 
         return ToolResult.ok({
             "results": [],
