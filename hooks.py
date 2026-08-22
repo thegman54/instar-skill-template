@@ -34,6 +34,13 @@ class Hooks(SkillHooks):
         course-correct, or None to allow."""
         return None
 
+    async def on_tick(self, ctx):
+        """The scheduler clock — ctx = {"ts", "interval"}. The ONLY hook that fires with
+        no turn, no profile and no user behind it, so a skill can act on its own.
+        CLAIM work in your own table before dispatching it (ticks can overlap), scope it
+        to a profile yourself, and return fast — every skill shares one bounded window."""
+        return None
+
     async def on_learn(self, ctx, transcript):
         """A conversation was flagged for learning — return proposals/notes, or None."""
         return None
